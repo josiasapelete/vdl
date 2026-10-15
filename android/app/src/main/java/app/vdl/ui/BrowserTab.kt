@@ -104,40 +104,22 @@ fun BrowserTab(
                     delay(5000)
                     onNoticeDismiss(n.id)
                 }
-                Surface(
-                    color = MaterialTheme.colorScheme.inverseSurface,
-                    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
-                    shape = RoundedCornerShape(14.dp),
-                    shadowElevation = 6.dp,
-                    modifier = Modifier.align(Alignment.TopCenter).padding(12.dp).fillMaxWidth(),
-                ) {
-                    Row(Modifier.padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.GppGood, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.inversePrimary)
-                        Spacer(Modifier.width(10.dp))
-                        Text(n.text, Modifier.weight(1f).padding(vertical = 10.dp), style = MaterialTheme.typography.bodyMedium)
-                        n.action?.let { action ->
-                            TextButton(onClick = { onNoticeDismiss(n.id); action() }) {
-                                Text("Ouvrir", color = MaterialTheme.colorScheme.inversePrimary)
-                            }
-                        }
-                    }
-                }
+                NoticeBanner(
+                    n.text,
+                    n.action?.let { action -> { onNoticeDismiss(n.id); action() } },
+                    Modifier.align(Alignment.TopCenter).padding(12.dp).fillMaxWidth(),
+                )
             }
             androidx.compose.animation.AnimatedVisibility(
                 visible = hasPage && (known || detectedCount > 0),
                 enter = scaleIn(), exit = scaleOut(),
                 modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp),
             ) {
-                BadgedBox(badge = { if (detectedCount > 1 && !known) Badge { Text("$detectedCount") } }) {
-                    ExtendedFloatingActionButton(
-                        onClick = { onDownload(controller.url, controller.title) },
-                        icon = { Icon(Icons.Default.Download, null) },
-                        text = { Text(if (videoPlaying || known) "Télécharger cette vidéo" else "Télécharger") },
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    )
-                }
+                DownloadFab(
+                    label = if (videoPlaying || known) "Télécharger cette vidéo" else "Télécharger",
+                    badge = if (known) 0 else detectedCount,
+                    onClick = { onDownload(controller.url, controller.title) },
+                )
             }
         }
     }
@@ -159,14 +141,42 @@ fun BrowserTab(
 }
 
 @Composable
-private fun AddressBar(controller: BrowserController, onShields: () -> Unit) {
+private fun AddressBar(controller: BrowserController, onShields: () -> Unit) = AddressBarContent(
+    url = controller.url,
+    canGoBack = controller.canGoBack,
+    canGoForward = controller.canGoForward,
+    progress = controller.progress,
+    shieldsOn = controller.shieldsOn,
+    blockedTotal = controller.blockedTotal,
+    onBack = controller::back,
+    onForward = controller::forward,
+    onReload = controller::reload,
+    onLoad = controller::load,
+    onShields = onShields,
+)
+
+/** Barre d'adresse sans état (réutilisée par les captures d'écran du site). */
+@Composable
+fun AddressBarContent(
+    url: String,
+    canGoBack: Boolean,
+    canGoForward: Boolean,
+    progress: Int,
+    shieldsOn: Boolean,
+    blockedTotal: Int,
+    onBack: () -> Unit,
+    onForward: () -> Unit,
+    onReload: () -> Unit,
+    onLoad: (String) -> Unit,
+    onShields: () -> Unit,
+) {
     var editing by remember { mutableStateOf(false) }
     var text by remember { mutableStateOf("") }
     val focus = LocalFocusManager.current
     Surface(color = MaterialTheme.colorScheme.surface) {
         Column {
             Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = controller::back, enabled = controller.canGoBack) {
+                IconButton(onClick = onBack, enabled = canGoBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, "Précédent")
                 }
                 Surface(
@@ -176,24 +186,24 @@ private fun AddressBar(controller: BrowserController, onShields: () -> Unit) {
                 ) {
                     Row(Modifier.padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            if (controller.url.startsWith("https") && !editing) Icons.Default.Lock else Icons.Default.Search,
+                            if (url.startsWith("https") && !editing) Icons.Default.Lock else Icons.Default.Search,
                             null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(Modifier.width(8.dp))
                         BasicTextField(
-                            value = if (editing) text else displayUrl(controller.url),
+                            value = if (editing) text else displayUrl(url),
                             onValueChange = { text = it },
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
                             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
                             keyboardActions = KeyboardActions(onGo = {
-                                controller.load(text)
+                                onLoad(text)
                                 focus.clearFocus()
                             }),
                             decorationBox = { inner ->
                                 Box(contentAlignment = Alignment.CenterStart) {
-                                    if (editing && text.isEmpty() || !editing && controller.url.isEmpty()) {
+                                    if (editing && text.isEmpty() || !editing && url.isEmpty()) {
                                         Text("Rechercher ou saisir une adresse", style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                                     }
@@ -201,41 +211,75 @@ private fun AddressBar(controller: BrowserController, onShields: () -> Unit) {
                                 }
                             },
                             modifier = Modifier.weight(1f).onFocusChanged {
-                                if (it.isFocused && !editing) text = controller.url
+                                if (it.isFocused && !editing) text = url
                                 editing = it.isFocused
                             },
                         )
                     }
                 }
-                if (controller.canGoForward) {
-                    IconButton(onClick = controller::forward) { Icon(Icons.AutoMirrored.Filled.ArrowForward, "Suivant") }
+                if (canGoForward) {
+                    IconButton(onClick = onForward) { Icon(Icons.AutoMirrored.Filled.ArrowForward, "Suivant") }
                 }
-                IconButton(onClick = controller::reload, enabled = controller.url.isNotEmpty()) {
+                IconButton(onClick = onReload, enabled = url.isNotEmpty()) {
                     Icon(Icons.Default.Refresh, "Recharger")
                 }
                 // Bouclier : nombre d'éléments bloqués sur la page
                 IconButton(onClick = onShields) {
                     BadgedBox(badge = {
-                        if (controller.shieldsOn && controller.blockedTotal > 0) {
+                        if (shieldsOn && blockedTotal > 0) {
                             Badge(containerColor = MaterialTheme.colorScheme.tertiary) {
-                                Text(if (controller.blockedTotal > 99) "99+" else "${controller.blockedTotal}")
+                                Text(if (blockedTotal > 99) "99+" else "$blockedTotal")
                             }
                         }
                     }) {
                         Icon(
-                            if (controller.shieldsOn) Icons.Default.GppGood else Icons.Default.GppMaybe, "Protection",
-                            tint = if (controller.shieldsOn) MaterialTheme.colorScheme.tertiary
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                            if (shieldsOn) Icons.Default.GppGood else Icons.Default.GppMaybe, "Protection",
+                            tint = if (shieldsOn) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
             }
-            if (controller.progress in 1..99) {
-                LinearProgressIndicator(progress = { controller.progress / 100f }, modifier = Modifier.fillMaxWidth().height(2.dp))
+            if (progress in 1..99) {
+                LinearProgressIndicator(progress = { progress / 100f }, modifier = Modifier.fillMaxWidth().height(2.dp))
             } else {
                 Spacer(Modifier.height(2.dp))
             }
         }
+    }
+}
+
+/** Avertissement « pop-up / redirection bloquée ». */
+@Composable
+fun NoticeBanner(text: String, onAction: (() -> Unit)?, modifier: Modifier = Modifier) {
+    Surface(
+        color = MaterialTheme.colorScheme.inverseSurface,
+        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+        shape = RoundedCornerShape(14.dp),
+        shadowElevation = 6.dp,
+        modifier = modifier,
+    ) {
+        Row(Modifier.padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.GppGood, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.inversePrimary)
+            Spacer(Modifier.width(10.dp))
+            Text(text, Modifier.weight(1f).padding(vertical = 10.dp), style = MaterialTheme.typography.bodyMedium)
+            if (onAction != null) {
+                TextButton(onClick = onAction) { Text("Ouvrir", color = MaterialTheme.colorScheme.inversePrimary) }
+            }
+        }
+    }
+}
+
+/** Bouton flottant « Télécharger cette vidéo ». */
+@Composable
+fun DownloadFab(label: String, badge: Int, onClick: () -> Unit) {
+    BadgedBox(badge = { if (badge > 1) Badge { Text("$badge") } }) {
+        ExtendedFloatingActionButton(
+            onClick = onClick,
+            icon = { Icon(Icons.Default.Download, null) },
+            text = { Text(label) },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+        )
     }
 }
 

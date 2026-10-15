@@ -92,7 +92,23 @@ jobs:
           merge-multiple: true
       - name: Sommes de contrôle
         run: cd out && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - uses: actions/checkout@v7
+        with:
+          path: src
+          sparse-checkout: CHANGELOG.md
+          sparse-checkout-cone-mode: false
+      - name: Notes de version (CHANGELOG.md)
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v v="## $VERSION" '$0 == v {on=1; next} /^## / {on=0} on' src/CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then echo "Version $VERSION" > notes.md; fi
+          {
+            echo ""
+            echo "---"
+            echo "**Télécharger :** https://vdl.jakdev.space"
+          } >> notes.md
+          cat notes.md
       - uses: softprops/action-gh-release@v3
         with:
           files: out/*
-          generate_release_notes: true
+          body_path: notes.md

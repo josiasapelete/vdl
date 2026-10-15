@@ -99,31 +99,7 @@ fun MainScreen(vm: MainViewModel) {
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest) {
-                NavigationBarItem(
-                    selected = tab == Tab.HOME, onClick = { vm.selectTab(Tab.HOME) },
-                    icon = { Icon(if (tab == Tab.HOME) Icons.Filled.Home else Icons.Outlined.Home, null) },
-                    label = { Text("Accueil") },
-                )
-                NavigationBarItem(
-                    selected = tab == Tab.BROWSER, onClick = { vm.selectTab(Tab.BROWSER) },
-                    icon = {
-                        BadgedBox(badge = { if (detected.isNotEmpty() && tab != Tab.BROWSER) Badge() }) {
-                            Icon(if (tab == Tab.BROWSER) Icons.Filled.Public else Icons.Outlined.Public, null)
-                        }
-                    },
-                    label = { Text("Navigateur") },
-                )
-                NavigationBarItem(
-                    selected = tab == Tab.DOWNLOADS, onClick = { vm.selectTab(Tab.DOWNLOADS) },
-                    icon = {
-                        BadgedBox(badge = { if (activeCount > 0) Badge { Text("$activeCount") } }) {
-                            Icon(if (tab == Tab.DOWNLOADS) Icons.Filled.Download else Icons.Outlined.Download, null)
-                        }
-                    },
-                    label = { Text("Téléchargements") },
-                )
-            }
+            VdlBottomBar(tab, vm::selectTab, activeCount, browserDot = detected.isNotEmpty())
         },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
@@ -193,4 +169,34 @@ private fun share(ctx: Context, item: DownloadItem) {
         .putExtra(Intent.EXTRA_STREAM, Uri.parse(item.fileUri))
         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     runCatching { ctx.startActivity(Intent.createChooser(send, item.title)) }
+}
+
+/** Barre d'onglets du bas (sans état : réutilisée par les captures d'écran du site). */
+@Composable
+fun VdlBottomBar(tab: Tab, onSelect: (Tab) -> Unit, activeCount: Int, browserDot: Boolean) {
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        NavigationBarItem(
+            selected = tab == Tab.HOME, onClick = { onSelect(Tab.HOME) },
+            icon = { Icon(if (tab == Tab.HOME) Icons.Filled.Home else Icons.Outlined.Home, null) },
+            label = { Text("Accueil") },
+        )
+        NavigationBarItem(
+            selected = tab == Tab.BROWSER, onClick = { onSelect(Tab.BROWSER) },
+            icon = {
+                BadgedBox(badge = { if (browserDot && tab != Tab.BROWSER) Badge() }) {
+                    Icon(if (tab == Tab.BROWSER) Icons.Filled.Public else Icons.Outlined.Public, null)
+                }
+            },
+            label = { Text("Navigateur") },
+        )
+        NavigationBarItem(
+            selected = tab == Tab.DOWNLOADS, onClick = { onSelect(Tab.DOWNLOADS) },
+            icon = {
+                BadgedBox(badge = { if (activeCount > 0) Badge { Text("$activeCount") } }) {
+                    Icon(if (tab == Tab.DOWNLOADS) Icons.Filled.Download else Icons.Outlined.Download, null)
+                }
+            },
+            label = { Text("Téléchargements") },
+        )
+    }
 }
