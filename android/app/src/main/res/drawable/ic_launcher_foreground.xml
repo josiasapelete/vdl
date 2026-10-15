@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Flèche de téléchargement, dans la zone sûre (66dp) d'une icône adaptative de 108dp -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,30 L60,30 L60,52 L71,52 L54,70 L37,52 L48,52 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M37,75 L71,75 A3,3 0 0 1 71,81 L37,81 A3,3 0 0 1 37,75 Z" />
+</vector>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VDL</string>
+    <string name="share_label">Télécharger avec VDL</string>
+    <string name="channel_downloads">Téléchargements</string>
+</resources>

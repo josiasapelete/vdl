@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vdl"
+version = "0.1.0"
+description = "Gestionnaire de téléchargements vidéo/fichiers (yt-dlp + multi-segments + extension navigateur)"
+requires-python = ">=3.10"
+dependencies = [
+    "yt-dlp[default,curl-cffi]",
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+gui = ["PySide6>=6.6"]
+
+[project.scripts]
+vdl = "vdl.cli:main"
+
+[project.gui-scripts]
+vdl-gui = "vdl.gui.app:main"
+
+[tool.setuptools.packages.find]
+include = ["vdl*"]
+
+[tool.setuptools.package-data]
+"vdl.gui" = ["icon.png"]

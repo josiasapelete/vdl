@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>VDL</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <strong>VDL</strong>
+    <span id="status" class="status">…</span>
+  </header>
+
+  <button id="page" class="primary">⬇ Télécharger la vidéo de cette page</button>
+
+  <h2>Médias détectés sur la page</h2>
+  <ul id="media"></ul>
+  <p id="empty" class="muted" hidden>Aucun média détecté. Lancez la lecture de la vidéo puis rouvrez ce menu.</p>
+
+  <details>
+    <summary>Réglages</summary>
+    <label>Port de l'application <input id="port" type="number" min="1024" max="65535"></label>
+  </details>
+  <script src="popup.js"></script>
+</body>
+</html>

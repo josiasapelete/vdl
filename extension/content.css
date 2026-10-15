@@ -1,0 +1,36 @@
+.vdl-panel {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  display: none;
+  align-items: stretch;
+  border-radius: 7px !important;
+  overflow: hidden !important;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, .4) !important;
+  font: 600 13px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif !important;
+}
+.vdl-panel.vdl-visible { display: flex !important; }
+.vdl-panel button {
+  all: unset;
+  box-sizing: border-box !important;
+  padding: 7px 12px !important;
+  background: #2d6cdf !important;
+  color: #fff !important;
+  cursor: pointer !important;
+  font: inherit !important;
+}
+.vdl-panel button:hover { background: #1f56b8 !important; }
+.vdl-panel .vdl-x { padding: 7px 9px !important; border-left: 1px solid rgba(255, 255, 255, .3) !important; }
+
+.vdl-toast {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  right: 20px;
+  bottom: 20px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #1d7a46;
+  color: #fff;
+  font: 600 14px/1.3 system-ui, sans-serif;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
+}
+.vdl-toast.vdl-error { background: #b3261e; }

@@ -1,0 +1,27 @@
+VDL — gestionnaire de téléchargements
+=====================================
+
+Lancer VDL : menu Démarrer > VDL (ou VDL.exe dans ce dossier).
+Fermer la fenêtre laisse VDL près de l'horloge, pour continuer à recevoir
+les liens de l'extension. Quitter : clic droit sur l'icône > Quitter.
+
+Extension navigateur
+--------------------
+Le dossier « extension » contient l'extension VDL.
+  Chrome, Edge, Brave, Opera :
+    1. ouvrir chrome://extensions (edge://extensions, brave://extensions)
+    2. activer le « Mode développeur »
+    3. « Charger l'extension non empaquetée » > choisir le dossier « extension »
+
+Données et historique : %APPDATA%\VDL
+Téléchargements par défaut : Téléchargements\VDL
+
+Composants tiers
+----------------
+- yt-dlp (Unlicense) — https://github.com/yt-dlp/yt-dlp
+- FFmpeg (GPL v3, build gyan.dev) — https://ffmpeg.org, sources : https://github.com/FFmpeg/FFmpeg
+- Qt / PySide6 (LGPL v3) — https://www.qt.io
+- curl_cffi (MIT) — https://github.com/lexiforest/curl_cffi
+
+Respectez le droit d'auteur et les conditions d'utilisation des sites.
+Les contenus protégés par DRM ne sont pas pris en charge.

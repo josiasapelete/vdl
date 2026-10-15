@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Conditions d'utilisation — VDL</title>
+  <link rel="icon" href="assets/icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <a class="brand" href="index.html"><img src="assets/icon.png" alt="">VDL</a>
+    </div>
+  </header>
+
+  <main class="wrap doc">
+    <h1>Conditions d'utilisation</h1>
+    <p class="updated">Dernière mise à jour : octobre 2026</p>
+
+    <h2>1. Objet</h2>
+    <p>VDL est un logiciel gratuit qui permet de télécharger des fichiers et des contenus multimédias
+      accessibles publiquement. VDL fonctionne entièrement sur votre appareil : aucun contenu ne transite
+      par nos serveurs et nous n'hébergeons aucun fichier vidéo ou audio.</p>
+
+    <h2>2. Votre responsabilité</h2>
+    <p>Vous êtes seul responsable de l'usage que vous faites de VDL. Vous vous engagez à :</p>
+    <ul>
+      <li>ne télécharger que des contenus que vous avez le droit de copier : contenus dont vous êtes l'auteur,
+        contenus sous licence libre, ou copie autorisée par l'auteur ou par la loi (copie privée, dans les limites
+        prévues par le droit applicable) ;</li>
+      <li>respecter les conditions d'utilisation des sites que vous consultez ;</li>
+      <li>ne pas utiliser VDL pour contourner une mesure technique de protection (DRM). VDL ne prend pas en
+        charge les contenus protégés par DRM.</li>
+    </ul>
+    <p>Le téléchargement d'œuvres protégées (films, séries, musique…) sans l'autorisation des ayants droit
+      constitue une contrefaçon, sanctionnée par la loi.</p>
+
+    <h2>3. Absence de garantie</h2>
+    <p>VDL est fourni « en l'état », sans garantie d'aucune sorte. Les sites modifiant régulièrement leur
+      fonctionnement, certains téléchargements peuvent cesser de fonctionner temporairement.</p>
+
+    <h2>4. Données personnelles</h2>
+    <p>VDL ne collecte aucune donnée personnelle et ne contient aucun outil de mesure d'audience.
+      L'historique des téléchargements est stocké uniquement sur votre appareil. VDL se connecte à GitHub
+      pour vérifier les mises à jour.</p>
+
+    <h2>5. Composants tiers</h2>
+    <p>VDL utilise notamment yt-dlp (Unlicense), FFmpeg (GPL v3), Qt/PySide6 (LGPL v3) et curl_cffi (MIT),
+      distribués selon leurs licences respectives.</p>
+
+    <h2>6. Signalement</h2>
+    <p>Pour tout signalement (droits d'auteur, abus, problème de sécurité), écrivez-nous à
+      <a id="contact" href="#">l'adresse de contact</a>.</p>
+  </main>
+
+  <footer>
+    <div class="wrap"><a href="index.html">← Retour à l'accueil</a></div>
+  </footer>
+  <script src="config.js"></script>
+  <script>
+    const c = (window.VDL_CONFIG || {}).contact;
+    if (c) { const a = document.getElementById("contact"); a.href = "mailto:" + c; a.textContent = c; }
+  </script>
+</body>
+</html>
