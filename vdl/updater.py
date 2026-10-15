@@ -14,6 +14,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import tempfile
+from dataclasses import dataclass
+from pathlib import Path
 import subprocess
 import sys
 import time
@@ -124,16 +127,70 @@ def _update_frozen() -> tuple[bool, str]:
 
 # --------------------------------------------------------------------------- VDL
 
-def check_app_update() -> tuple[str, str] | None:
-    """(version, url de la page de téléchargement) si une version plus récente de VDL existe."""
+@dataclass
+class AppRelease:
+    version: str
+    page_url: str
+    setup_url: str = ""       # installeur Windows de la version
+    setup_name: str = ""
+    sums_url: str = ""        # SHA256SUMS.txt
+
+
+def check_app_update() -> AppRelease | None:
+    """La dernière version publiée, si elle est plus récente que celle-ci."""
     if not UPDATE_REPO:
         return None
     try:
         rel = requests.get(f"https://api.github.com/repos/{UPDATE_REPO}/releases/latest", timeout=10,
                            headers={"Accept": "application/vnd.github+json"}).json()
         tag = rel.get("tag_name", "")
-        if tag and _ver(tag) > _ver(__version__):
-            return tag.lstrip("v"), rel.get("html_url") or f"https://github.com/{UPDATE_REPO}/releases/latest"
-    except (requests.RequestException, ValueError):
-        pass
-    return None
+        if not tag or _ver(tag) <= _ver(__version__):
+            return None
+        info = AppRelease(tag.lstrip("v"), rel.get("html_url") or f"https://github.com/{UPDATE_REPO}/releases/latest")
+        for a in rel.get("assets", []):
+            name = a.get("name", "")
+            if name.startswith("VDL-Setup") and name.endswith(".exe"):
+                info.setup_url, info.setup_name = a["browser_download_url"], name
+            elif name == "SHA256SUMS.txt":
+                info.sums_url = a["browser_download_url"]
+        return info
+    except (requests.RequestException, ValueError, KeyError):
+        return None
+
+
+def can_self_update(info: AppRelease) -> bool:
+    """Mise à jour automatique possible : application installée sous Windows, installeur publié."""
+    return bool(getattr(sys, "frozen", False) and sys.platform == "win32" and info.setup_url)
+
+
+def download_app_update(info: AppRelease, progress=None) -> Path:
+    """Télécharge l'installeur et vérifie son empreinte SHA-256. Lève une exception en cas de problème."""
+    folder = Path(tempfile.gettempdir()) / "VDL-update"
+    folder.mkdir(exist_ok=True)
+    target = folder / info.setup_name
+    digest = hashlib.sha256()
+    with requests.get(info.setup_url, stream=True, timeout=30) as r:
+        r.raise_for_status()
+        total = int(r.headers.get("Content-Length") or 0)
+        done = 0
+        with open(target, "wb") as f:
+            for chunk in r.iter_content(256 * 1024):
+                f.write(chunk)
+                digest.update(chunk)
+                done += len(chunk)
+                if progress and total:
+                    progress(done / total)
+    if info.sums_url:
+        sums = requests.get(info.sums_url, timeout=15).text
+        expected = next((line.split()[0] for line in sums.splitlines()
+                         if line.strip().endswith(info.setup_name)), "")
+        if expected and expected.lower() != digest.hexdigest():
+            target.unlink(missing_ok=True)
+            raise RuntimeError("Fichier de mise à jour altéré : installation annulée.")
+    return target
+
+
+def run_installer(setup: Path) -> None:
+    """Lance l'installeur en mode silencieux : il ferme VDL, remplace les fichiers et le relance."""
+    subprocess.Popen([str(setup), "/SILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
+                     creationflags=getattr(subprocess, "DETACHED_PROCESS", 0))

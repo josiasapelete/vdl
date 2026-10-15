@@ -10,9 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.UUID
 
 enum class Tab { HOME, BROWSER, DOWNLOADS }
@@ -44,8 +41,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message
 
-    private val _appUpdate = MutableStateFlow<Pair<String, String>?>(null)
-    val appUpdate: StateFlow<Pair<String, String>?> = _appUpdate
+    private val _appUpdate = MutableStateFlow<AppUpdate?>(null)
+    val appUpdate: StateFlow<AppUpdate?> = _appUpdate
+    private val _updateProgress = MutableStateFlow<Float?>(null)
+    /** null = pas de téléchargement de mise à jour en cours, sinon 0..1 */
+    val updateProgress: StateFlow<Float?> = _updateProgress
 
     // --- navigateur intégré
     private val _detected = MutableStateFlow<List<DetectedMedia>>(emptyList())
@@ -200,19 +200,28 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun checkAppUpdate() {
-        val repo = BuildConfig.UPDATE_REPO
-        if (repo.isEmpty()) return
+        viewModelScope.launch { _appUpdate.value = AppUpdater.check() }
+    }
+
+    /** Télécharge la nouvelle version, la vérifie, puis ouvre l'installation d'Android. */
+    fun installUpdate() {
+        val update = _appUpdate.value ?: return
+        if (_updateProgress.value != null) return
+        if (!AppUpdater.canInstall(ctx)) {
+            _message.value = "Autorisez VDL à installer des applis, puis appuyez de nouveau sur Mettre à jour"
+            AppUpdater.openInstallPermission(ctx)
+            return
+        }
+        _updateProgress.value = 0f
         viewModelScope.launch {
-            _appUpdate.value = withContext(Dispatchers.IO) {
-                runCatching {
-                    val conn = URL("https://api.github.com/repos/$repo/releases/latest").openConnection() as HttpURLConnection
-                    conn.setRequestProperty("Accept", "application/vnd.github+json")
-                    conn.connectTimeout = 10_000
-                    conn.readTimeout = 10_000
-                    val json = JSONObject(conn.inputStream.bufferedReader().readText())
-                    val tag = json.getString("tag_name").removePrefix("v")
-                    if (isNewer(tag, BuildConfig.VERSION_NAME)) tag to json.getString("html_url") else null
-                }.getOrNull()
+            try {
+                val apk = AppUpdater.download(ctx, update) { _updateProgress.value = it }
+                AppUpdater.install(ctx, apk)
+            } catch (e: Exception) {
+                _message.value = e.message?.takeIf { e is SecurityException }
+                    ?: "Téléchargement de la mise à jour impossible. Vérifiez votre connexion."
+            } finally {
+                _updateProgress.value = null
             }
         }
     }

@@ -148,7 +148,7 @@ class SiteShotsTest {
             HomeContent(
                 url = "", onUrlChange = {}, onSubmit = {}, onPaste = {},
                 clipSuggestion = "https://video-exemple.com/regarder/42", onUseClip = {}, engineReady = true,
-                appUpdate = null, onOpenUpdate = {}, recent = samples, onSeeAll = {}, onOpenSite = {}, onOpenBrowser = {},
+                appUpdate = null, updateProgress = null, onUpdate = {}, recent = samples, onSeeAll = {}, onOpenSite = {}, onOpenBrowser = {},
             )
         }
     }
@@ -192,7 +192,7 @@ class SiteShotsTest {
         WithBar(Tab.HOME) {
             HomeContent(
                 url = "", onUrlChange = {}, onSubmit = {}, onPaste = {}, clipSuggestion = null, onUseClip = {},
-                engineReady = true, appUpdate = null, onOpenUpdate = {}, recent = samples, onSeeAll = {},
+                engineReady = true, appUpdate = null, updateProgress = null, onUpdate = {}, recent = samples, onSeeAll = {},
                 onOpenSite = {}, onOpenBrowser = {},
             )
         }

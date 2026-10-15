@@ -28,6 +28,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -67,8 +68,9 @@ fun HomeContent(
     clipSuggestion: String?,
     onUseClip: (String) -> Unit,
     engineReady: Boolean,
-    appUpdate: Pair<String, String>?,
-    onOpenUpdate: (String) -> Unit,
+    appUpdate: String?,                 // version disponible
+    updateProgress: Float?,             // téléchargement de la mise à jour en cours (0..1)
+    onUpdate: () -> Unit,
     recent: List<DownloadItem>,
     onSeeAll: () -> Unit,
     onOpenSite: (String) -> Unit,
@@ -88,15 +90,25 @@ fun HomeContent(
             }
         }
 
-        appUpdate?.let { (version, link) ->
+        appUpdate?.let { version ->
             item {
                 Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = MaterialTheme.shapes.medium) {
-                    Row(Modifier.padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.SystemUpdate, null, Modifier.size(20.dp))
-                        Spacer(Modifier.width(12.dp))
-                        Text("VDL $version est disponible", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                        TextButton(onClick = { onOpenUpdate(link) }) { Text("Mettre à jour") }
+                    Column {
+                        Row(Modifier.padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.SystemUpdate, null, Modifier.size(20.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                if (updateProgress == null) "VDL $version est disponible"
+                                else "Téléchargement de VDL $version… ${(updateProgress * 100).toInt()} %",
+                                Modifier.weight(1f).padding(vertical = if (updateProgress == null) 0.dp else 12.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            if (updateProgress == null) TextButton(onClick = onUpdate) { Text("Mettre à jour") }
+                        }
+                        if (updateProgress != null) {
+                            LinearProgressIndicator(progress = { updateProgress }, modifier = Modifier.fillMaxWidth())
+                        }
                     }
                 }
             }

@@ -49,6 +49,8 @@ Name: "{userstartup}\VDL"; Filename: "{app}\VDL.exe"; Parameters: "--minimized";
 
 [Run]
 Filename: "{app}\VDL.exe"; Description: "{cm:LaunchProgram,VDL}"; Flags: nowait postinstall skipifsilent
+; Mise à jour lancée depuis VDL (mode silencieux) : on relance l'application
+Filename: "{app}\VDL.exe"; Flags: nowait; Check: WizardSilent
 
 [InstallDelete]
 ; Une mise à jour remplace entièrement l'ancienne version (fichiers obsolètes inclus)

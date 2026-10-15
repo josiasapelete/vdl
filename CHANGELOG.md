@@ -3,6 +3,14 @@
 Chaque section « ## x.y.z » devient le texte de la version publiée sur GitHub.
 Pensez aussi à l'ajouter à la section « Nouveautés » du site (site/index.html).
 
+## 0.3.1
+
+**Mise à jour en un clic**
+
+- Le bouton « Mettre à jour » télécharge et installe directement la nouvelle version (Android et Windows), sans passer par GitHub.
+- Le fichier téléchargé est vérifié (empreinte SHA-256) avant l'installation.
+- Sous Windows, VDL se relance tout seul après la mise à jour.
+
 ## 0.3.0
 
 **Navigation protégée sur Android**

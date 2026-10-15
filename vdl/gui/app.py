@@ -63,14 +63,31 @@ class ProbeWorker(QThread):
 
 class UpdateWorker(QThread):
     finished_msg = Signal(bool, str)
-    app_update = Signal(str, str)      # (version, page de téléchargement)
+    app_update = Signal(object)        # updater.AppRelease
 
     def run(self):
         from ..updater import check_app_update, update
         self.finished_msg.emit(*update())
         found = check_app_update()
         if found:
-            self.app_update.emit(*found)
+            self.app_update.emit(found)
+
+
+class AppUpdateWorker(QThread):
+    """Télécharge et vérifie l'installeur de la nouvelle version."""
+    progress = Signal(float)
+    done = Signal(object, str)         # (chemin de l'installeur ou None, message d'erreur)
+
+    def __init__(self, info):
+        super().__init__()
+        self.info = info
+
+    def run(self):
+        from ..updater import download_app_update
+        try:
+            self.done.emit(download_app_update(self.info, self.progress.emit), "")
+        except Exception as e:  # noqa: BLE001
+            self.done.emit(None, str(e))
 
 
 class Bridge(QObject):
@@ -212,14 +229,41 @@ class MainWindow(QMainWindow):
             w.app_update.connect(self._on_app_update)
             self._run_worker(w)
 
-    def _on_app_update(self, version: str, url: str):
-        btn = QPushButton(f"VDL {version} disponible — télécharger")
-        btn.setFlat(True)
-        btn.setStyleSheet("color:#2d6cdf;font-weight:600;")
-        btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
-        self.statusBar().addPermanentWidget(btn)
-        self.tray.showMessage(APP_NAME, f"Une nouvelle version de VDL ({version}) est disponible.",
+    def _on_app_update(self, info):
+        self._update_btn = QPushButton(f"VDL {info.version} disponible — mettre à jour")
+        self._update_btn.setFlat(True)
+        self._update_btn.setStyleSheet("color:#2d6cdf;font-weight:600;")
+        self._update_btn.clicked.connect(lambda: self._start_app_update(info))
+        self.statusBar().addPermanentWidget(self._update_btn)
+        self.tray.showMessage(APP_NAME, f"Une nouvelle version de VDL ({info.version}) est disponible.",
                               QSystemTrayIcon.Information, 6000)
+
+    def _start_app_update(self, info):
+        from ..updater import can_self_update
+        if not can_self_update(info):        # version de développement : page de téléchargement
+            QDesktopServices.openUrl(QUrl(info.page_url))
+            return
+        if any(t.status in (Status.RUNNING, Status.PROCESSING) for t in self.manager.snapshot()) and \
+                QMessageBox.question(self, APP_NAME, "Des téléchargements sont en cours. Ils seront mis en pause "
+                                     "et reprendront après la mise à jour. Continuer ?") != QMessageBox.Yes:
+            return
+        self._update_btn.setEnabled(False)
+        w = AppUpdateWorker(info)
+        w.progress.connect(lambda p: self._update_btn.setText(f"Téléchargement de VDL {info.version}… {p * 100:.0f} %"))
+        w.done.connect(lambda path, err: self._finish_app_update(info, path, err))
+        self._run_worker(w)
+
+    def _finish_app_update(self, info, path, err: str):
+        if path is None:
+            self._update_btn.setEnabled(True)
+            self._update_btn.setText(f"VDL {info.version} disponible — réessayer")
+            QMessageBox.warning(self, APP_NAME, f"La mise à jour n'a pas pu être téléchargée.\n\n{err}")
+            return
+        from ..updater import run_installer
+        self.tray.showMessage(APP_NAME, f"Installation de VDL {info.version}… VDL va redémarrer.",
+                              QSystemTrayIcon.Information, 4000)
+        run_installer(path)
+        self.quit()     # les téléchargements en cours sont mis en pause et reprendront au redémarrage
 
     # ------------------------------------------------------------------ construction
 

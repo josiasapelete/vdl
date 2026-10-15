@@ -52,6 +52,7 @@ fun MainScreen(vm: MainViewModel) {
     val probe by vm.probe.collectAsState()
     val message by vm.message.collectAsState()
     val appUpdate by vm.appUpdate.collectAsState()
+    val updateProgress by vm.updateProgress.collectAsState()
     val engineReady by vm.engineReady.collectAsState()
     val detected by vm.detected.collectAsState()
     val videoPlaying by vm.videoPlaying.collectAsState()
@@ -127,8 +128,9 @@ fun MainScreen(vm: MainViewModel) {
                                 clipSuggestion = clipSuggestion,
                                 onUseClip = { url = it; clipSuggestion = null; vm.analyze(it) },
                                 engineReady = engineReady,
-                                appUpdate = appUpdate,
-                                onOpenUpdate = { link -> ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link))) },
+                                appUpdate = appUpdate?.version,
+                                updateProgress = updateProgress,
+                                onUpdate = vm::installUpdate,
                                 recent = downloads,
                                 onSeeAll = { vm.selectTab(Tab.DOWNLOADS) },
                                 onOpenSite = vm::openInBrowser,

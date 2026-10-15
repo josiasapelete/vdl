@@ -56,7 +56,7 @@ class ScreenshotsTest {
     private fun Home(clip: Boolean) = HomeContent(
         url = "", onUrlChange = {}, onSubmit = {}, onPaste = {},
         clipSuggestion = if (clip) "https://www.tiktok.com/@chef/video/7350000000000000000" else null,
-        onUseClip = {}, engineReady = false, appUpdate = null, onOpenUpdate = {},
+        onUseClip = {}, engineReady = false, appUpdate = null, updateProgress = null, onUpdate = {},
         recent = samples, onSeeAll = {}, onOpenSite = {}, onOpenBrowser = {},
     )
 
