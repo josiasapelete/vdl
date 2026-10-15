@@ -27,7 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Dépôt dans la configuration du site
-        run: sed -i "s#repo: \"[^\"]*\"#repo: \"${{ github.repository }}\"#" site/config.js
+        run: |
+          sed -i "s#repo: \"[^\"]*\"#repo: \"${{ github.repository }}\"#" site/config.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
