@@ -83,6 +83,33 @@ android {
     }
 }
 
+// Liste de blocage du navigateur intégré (StevenBlack, licence MIT), embarquée dans l'APK pour
+// protéger dès la première ouverture. L'application la remet ensuite à jour chaque semaine.
+val blocklistDir = layout.buildDirectory.dir("generated/blocklist")
+val fetchBlocklist by tasks.registering {
+    val out = blocklistDir.map { it.file("blocklist/domains.txt") }
+    outputs.file(out)
+    doLast {
+        val file = out.get().asFile
+        file.parentFile.mkdirs()
+        val text = runCatching {
+            uri("https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts").toURL().readText()
+        }.getOrElse {
+            logger.warn("Liste de blocage non téléchargée (${it.message}) : elle le sera au premier lancement.")
+            ""
+        }
+        val domains = text.lineSequence().map { it.trim() }
+            .filter { it.startsWith("0.0.0.0 ") }
+            .map { it.substringAfter(' ').substringBefore('#').trim() }
+            .filter { it.isNotEmpty() && it != "0.0.0.0" }
+            .toSortedSet()
+        file.writeText(domains.joinToString("\n"))
+        logger.lifecycle("Liste de blocage : ${domains.size} domaines")
+    }
+}
+android.sourceSets["main"].assets.srcDir(blocklistDir)
+tasks.named("preBuild") { dependsOn(fetchBlocklist) }
+
 dependencies {
     val ytdl = "0.18.1"
     implementation("io.github.junkfood02.youtubedl-android:library:$ytdl")

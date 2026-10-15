@@ -56,6 +56,7 @@ fun MainScreen(vm: MainViewModel) {
     val detected by vm.detected.collectAsState()
     val videoPlaying by vm.videoPlaying.collectAsState()
     val browserRequest by vm.browserRequest.collectAsState()
+    val browserNotice by vm.browserNotice.collectAsState()
     val snackbar = remember { SnackbarHostState() }
     var url by rememberSaveable { mutableStateOf("") }
     var clipSuggestion by remember { mutableStateOf<String?>(null) }
@@ -134,6 +135,8 @@ fun MainScreen(vm: MainViewModel) {
                 request = browserRequest,
                 onRequestConsumed = vm::consumeBrowserRequest,
                 onDownload = vm::downloadFromBrowser,
+                notice = browserNotice,
+                onNoticeDismiss = vm::dismissBrowserNotice,
                 modifier = if (tab == Tab.BROWSER) Modifier.zIndex(1f) else Modifier.zIndex(0f),
             )
             if (tab != Tab.BROWSER) {

@@ -17,6 +17,9 @@ import java.util.UUID
 
 enum class Tab { HOME, BROWSER, DOWNLOADS }
 
+/** Avertissement du navigateur (pop-up ou redirection bloquée), avec une action facultative. */
+data class BrowserNotice(val text: String, val action: (() -> Unit)?, val id: Long = System.nanoTime())
+
 sealed interface ProbeState {
     data object Idle : ProbeState
     data class Loading(val url: String) : ProbeState
@@ -52,6 +55,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val browserRequest: StateFlow<String?> = _browserRequest
     private val _videoPlaying = MutableStateFlow(false)
     val videoPlaying: StateFlow<Boolean> = _videoPlaying
+    private val _browserNotice = MutableStateFlow<BrowserNotice?>(null)
+    val browserNotice: StateFlow<BrowserNotice?> = _browserNotice
 
     init {
         checkAppUpdate()
@@ -125,6 +130,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val base = media.url.substringBefore('#')
             if (list.any { it.url.substringBefore('#') == base }) list else (list + media).takeLast(40)
         }
+    }
+
+    fun browserNotice(text: String, action: (() -> Unit)?) {
+        _browserNotice.value = BrowserNotice(text, action)
+    }
+
+    fun dismissBrowserNotice(id: Long) {
+        _browserNotice.update { if (it?.id == id) null else it }
     }
 
     fun onVideoPlaying() {

@@ -52,7 +52,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import app.vdl.BrowserNotice
 import app.vdl.browser.BrowserController
+import app.vdl.browser.Shields
+import androidx.compose.material.icons.filled.GppGood
+import androidx.compose.material.icons.filled.GppMaybe
+import androidx.compose.material3.TextButton
+import kotlinx.coroutines.delay
 import app.vdl.browser.MediaSniffer
 import androidx.compose.foundation.clickable
 
@@ -64,8 +70,11 @@ fun BrowserTab(
     request: String?,
     onRequestConsumed: () -> Unit,
     onDownload: (pageUrl: String, pageTitle: String) -> Unit,
+    notice: BrowserNotice?,
+    onNoticeDismiss: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var shieldsOpen by remember { mutableStateOf(false) }
     LaunchedEffect(request) {
         if (request != null) {
             controller.load(request)
@@ -76,7 +85,7 @@ fun BrowserTab(
     val known = hasPage && MediaSniffer.isKnownSite(controller.url)
 
     Column(modifier.fillMaxSize()) {
-        AddressBar(controller)
+        AddressBar(controller, onShields = { shieldsOpen = true })
         Box(Modifier.weight(1f).fillMaxWidth()) {
             AndroidView(
                 factory = {
@@ -88,6 +97,32 @@ fun BrowserTab(
             )
             if (!hasPage) {
                 StartPage(onOpen = controller::load, modifier = Modifier.fillMaxSize())
+            }
+            // Avertissement : pop-up ou redirection bloquée (5 s)
+            notice?.let { n ->
+                LaunchedEffect(n.id) {
+                    delay(5000)
+                    onNoticeDismiss(n.id)
+                }
+                Surface(
+                    color = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    shape = RoundedCornerShape(14.dp),
+                    shadowElevation = 6.dp,
+                    modifier = Modifier.align(Alignment.TopCenter).padding(12.dp).fillMaxWidth(),
+                ) {
+                    Row(Modifier.padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.GppGood, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.inversePrimary)
+                        Spacer(Modifier.width(10.dp))
+                        Text(n.text, Modifier.weight(1f).padding(vertical = 10.dp), style = MaterialTheme.typography.bodyMedium)
+                        n.action?.let { action ->
+                            TextButton(onClick = { onNoticeDismiss(n.id); action() }) {
+                                Text("Ouvrir", color = MaterialTheme.colorScheme.inversePrimary)
+                            }
+                        }
+                    }
+                }
             }
             androidx.compose.animation.AnimatedVisibility(
                 visible = hasPage && (known || detectedCount > 0),
@@ -106,10 +141,25 @@ fun BrowserTab(
             }
         }
     }
+
+    if (shieldsOpen) {
+        ShieldsSheet(
+            info = ShieldsInfo(
+                site = Shields.siteOfUrl(controller.url),
+                enabled = controller.shieldsOn,
+                blockedRequests = controller.blockedRequests,
+                blockedPopups = controller.blockedPopups,
+                blockedRedirects = controller.blockedRedirects,
+                listSize = Shields.size,
+            ),
+            onToggle = controller::setShields,
+            onDismiss = { shieldsOpen = false },
+        )
+    }
 }
 
 @Composable
-private fun AddressBar(controller: BrowserController) {
+private fun AddressBar(controller: BrowserController, onShields: () -> Unit) {
     var editing by remember { mutableStateOf(false) }
     var text by remember { mutableStateOf("") }
     val focus = LocalFocusManager.current
@@ -162,6 +212,22 @@ private fun AddressBar(controller: BrowserController) {
                 }
                 IconButton(onClick = controller::reload, enabled = controller.url.isNotEmpty()) {
                     Icon(Icons.Default.Refresh, "Recharger")
+                }
+                // Bouclier : nombre d'éléments bloqués sur la page
+                IconButton(onClick = onShields) {
+                    BadgedBox(badge = {
+                        if (controller.shieldsOn && controller.blockedTotal > 0) {
+                            Badge(containerColor = MaterialTheme.colorScheme.tertiary) {
+                                Text(if (controller.blockedTotal > 99) "99+" else "${controller.blockedTotal}")
+                            }
+                        }
+                    }) {
+                        Icon(
+                            if (controller.shieldsOn) Icons.Default.GppGood else Icons.Default.GppMaybe, "Protection",
+                            tint = if (controller.shieldsOn) MaterialTheme.colorScheme.tertiary
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
             if (controller.progress in 1..99) {

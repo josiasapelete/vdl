@@ -13,6 +13,8 @@ import app.vdl.ui.DownloadActions
 import app.vdl.ui.DownloadsContent
 import app.vdl.ui.HomeContent
 import app.vdl.ui.ProbeContent
+import app.vdl.ui.ShieldsContent
+import app.vdl.ui.ShieldsInfo
 import app.vdl.ui.StartPage
 import app.vdl.ui.VdlTheme
 import com.android.resources.NightMode
@@ -66,6 +68,10 @@ class ScreenshotsTest {
     @Test fun downloads_empty() = shoot(false) { DownloadsContent(emptyList(), noActions, onClearFinished = {}) }
 
     @Test fun browser_start() = shoot(false) { StartPage(onOpen = {}) }
+
+    @Test fun shields_light() = shoot(false) {
+        ShieldsContent(ShieldsInfo("streaming-exemple.com", true, 47, 3, 2, 112_480), onToggle = {})
+    }
 
     private val ready = ProbeState.Ready(
         ProbeResult("u", "Comment cuisiner des pâtes parfaites en 10 minutes", "", "Youtube", "Chef Marco", 612.0,
