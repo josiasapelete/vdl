@@ -27,7 +27,10 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.Badge
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -182,6 +185,7 @@ fun AddressBarContent(
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                     shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                     modifier = Modifier.weight(1f).height(42.dp),
                 ) {
                     Row(Modifier.padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -204,7 +208,7 @@ fun AddressBarContent(
                             decorationBox = { inner ->
                                 Box(contentAlignment = Alignment.CenterStart) {
                                     if (editing && text.isEmpty() || !editing && url.isEmpty()) {
-                                        Text("Rechercher ou saisir une adresse", style = MaterialTheme.typography.bodyMedium,
+                                        Text("Adresse ou recherche", style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                                     }
                                     inner()
@@ -287,6 +291,14 @@ private fun displayUrl(url: String) = url.removePrefix("https://").removePrefix(
 
 @Composable
 fun StartPage(onOpen: (String) -> Unit, modifier: Modifier = Modifier) {
+    var query by remember { mutableStateOf("") }
+    val focus = LocalFocusManager.current
+    val go = {
+        if (query.isNotBlank()) {
+            onOpen(query)
+            focus.clearFocus()
+        }
+    }
     Surface(modifier, color = MaterialTheme.colorScheme.background) {
         Column(
             Modifier.verticalScroll(rememberScrollState()).padding(24.dp),
@@ -295,6 +307,29 @@ fun StartPage(onOpen: (String) -> Unit, modifier: Modifier = Modifier) {
             Text("Navigateur", style = MaterialTheme.typography.headlineSmall)
             Text("Ouvrez n'importe quel site et lancez une vidéo : VDL la détecte et affiche le bouton Télécharger.",
                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Rechercher ou saisir une adresse", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                leadingIcon = { Icon(Icons.Default.Search, null) },
+                trailingIcon = {
+                    if (query.isNotBlank()) {
+                        IconButton(onClick = go) { Icon(Icons.AutoMirrored.Filled.ArrowForward, "Aller") }
+                    }
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(28.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
+                keyboardActions = KeyboardActions(onGo = { go() }),
+            )
+            Text("Sites populaires", style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
             POPULAR_SITES.chunked(4).forEach { row ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     row.forEach { site ->

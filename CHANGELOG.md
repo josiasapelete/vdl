@@ -3,6 +3,13 @@
 Chaque section « ## x.y.z » devient le texte de la version publiée sur GitHub.
 Pensez aussi à l'ajouter à la section « Nouveautés » du site (site/index.html).
 
+## 0.3.2
+
+**Navigateur plus simple à utiliser**
+
+- Grand champ « Rechercher ou saisir une adresse » sur la page d'accueil du navigateur.
+- Barre d'adresse plus visible.
+
 ## 0.3.1
 
 **Mise à jour en un clic**
