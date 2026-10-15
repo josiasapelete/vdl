@@ -3,21 +3,20 @@
 Tout passe par GitHub : il héberge le code, **construit** l'installeur Windows et les APK
 Android à chaque nouvelle version, et publie le site vitrine. Coût : 0 €.
 
-Résultat : un site `https://TON-PSEUDO.github.io/vdl/` avec les boutons de téléchargement.
+Résultat : un site `https://vdl.jakdev.space` avec les boutons de téléchargement.
 
 ## 1. Une seule fois : créer le dépôt
 
 1. Crée un compte sur https://github.com (gratuit).
 2. Crée un dépôt **public** nommé `vdl` (bouton *New repository*, sans README).
-3. Dans [site/config.js](site/config.js), remplace `TON-PSEUDO/vdl` par ton dépôt
-   et mets ton adresse de contact.
+3. Le dépôt (`josiasapelete/vdl`) et l'adresse de contact sont réglés dans [site/config.js](site/config.js).
 4. Dans un terminal, depuis ce dossier :
    ```powershell
    git init
    git add .
    git commit -m "VDL 0.1.0"
    git branch -M main
-   git remote add origin https://github.com/TON-PSEUDO/vdl.git
+   git remote add origin https://github.com/josiasapelete/vdl.git
    git push -u origin main
    ```
 

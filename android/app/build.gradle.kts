@@ -30,7 +30,7 @@ android {
         versionCode = vdlVersionCode
         versionName = vdlVersion
         // Dépôt GitHub qui publie les versions, pour signaler les mises à jour de VDL (vide = désactivé)
-        buildConfigField("String", "UPDATE_REPO", "\"${System.getenv("VDL_UPDATE_REPO") ?: ""}\"")
+        buildConfigField("String", "UPDATE_REPO", "\"${System.getenv("VDL_UPDATE_REPO") ?: "josiasapelete/vdl"}\"")
     }
 
     signingConfigs {
