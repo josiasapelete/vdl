@@ -4,6 +4,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("app.cash.paparazzi")     // captures d'écran des interfaces, sans téléphone (tests uniquement)
 }
 
 // Version : la même que l'application de bureau (vdl/__init__.py)

@@ -60,11 +60,14 @@ class DownloadWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(c
                     Engine.download(item, workDir) { progress, eta, line ->
                         val processing = line.startsWith("[Merger]") || line.startsWith("[ExtractAudio]") ||
                             line.startsWith("[Metadata]") || line.startsWith("[VideoConvertor]")
+                        val (size, speed) = Engine.parseProgressLine(line)
                         DownloadStore.update(itemId, persist = false) {
                             it.copy(
                                 status = if (processing) Status.PROCESSING else Status.RUNNING,
                                 progress = if (progress >= 0) progress else it.progress,
                                 eta = eta,
+                                size = size ?: it.size,
+                                speed = if (processing) "" else speed ?: it.speed,
                             )
                         }
                         val now = System.currentTimeMillis()
@@ -80,7 +83,7 @@ class DownloadWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(c
             DownloadStore.update(itemId) { it.copy(status = Status.PROCESSING) }
             val (uri, mime) = Storage.publish(ctx, file)
             DownloadStore.update(itemId) {
-                it.copy(status = Status.DONE, progress = 100f, eta = 0, fileName = file.name,
+                it.copy(status = Status.DONE, progress = 100f, eta = 0, speed = "", fileName = file.name,
                     fileUri = uri.toString(), mime = mime)
             }
             DownloadStore.get(itemId)?.let { Notifications.finished(ctx, it) }

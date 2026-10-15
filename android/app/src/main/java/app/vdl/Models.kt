@@ -21,9 +21,12 @@ data class DownloadItem(
     val mode: String,             // "video" ou "audio"
     val quality: String,          // "best" ou hauteur max ("1080"…)
     val thumbnail: String = "",
+    val headers: Map<String, String> = emptyMap(),   // Referer, cookies… du navigateur intégré
     val status: Status = Status.QUEUED,
     val progress: Float = 0f,     // 0..100
     val eta: Long = 0,
+    val speed: String = "",       // « 2.4MiB/s » (non persisté)
+    val size: String = "",        // « 48.20MiB »
     val fileName: String = "",
     val fileUri: String = "",
     val mime: String = "",
@@ -32,7 +35,8 @@ data class DownloadItem(
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("id", id).put("url", url).put("title", title).put("mode", mode).put("quality", quality)
-        .put("thumbnail", thumbnail).put("status", status.name).put("progress", progress.toDouble())
+        .put("thumbnail", thumbnail).put("headers", JSONObject(headers)).put("status", status.name)
+        .put("progress", progress.toDouble()).put("size", size)
         .put("fileName", fileName).put("fileUri", fileUri).put("mime", mime).put("error", error)
         .put("createdAt", createdAt)
 
@@ -44,8 +48,11 @@ data class DownloadItem(
             mode = o.optString("mode", "video"),
             quality = o.optString("quality", "best"),
             thumbnail = o.optString("thumbnail"),
+            headers = o.optJSONObject("headers")?.let { h -> h.keys().asSequence().associateWith { h.getString(it) } }
+                ?: emptyMap(),
             status = runCatching { Status.valueOf(o.optString("status")) }.getOrDefault(Status.ERROR),
             progress = o.optDouble("progress", 0.0).toFloat(),
+            size = o.optString("size"),
             fileName = o.optString("fileName"),
             fileUri = o.optString("fileUri"),
             mime = o.optString("mime"),
@@ -70,3 +77,16 @@ data class ProbeResult(
     val isPlaylist: Boolean,
     val entries: List<PlaylistEntry>,
 )
+
+/** Média repéré par le navigateur intégré pendant la navigation ou la lecture. */
+data class DetectedMedia(
+    val url: String,
+    val kind: Kind,
+    val headers: Map<String, String>,
+    val pageUrl: String,
+    val time: Long = System.currentTimeMillis(),
+) {
+    enum class Kind(val label: String) { HLS("Flux HLS"), DASH("Flux DASH"), VIDEO("Vidéo"), AUDIO("Audio") }
+
+    val isStream get() = kind == Kind.HLS || kind == Kind.DASH
+}

@@ -6,6 +6,8 @@ import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLException
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -16,6 +18,9 @@ import java.io.File
 object Engine {
     private val initLock = Mutex()
     @Volatile private var ready = false
+    private val _ready = MutableStateFlow(false)
+    /** false pendant la toute première préparation de Python/yt-dlp (quelques secondes). */
+    val readyFlow: StateFlow<Boolean> = _ready
     private const val UPDATE_INTERVAL_MS = 12 * 3600 * 1000L
 
     class EngineError(message: String) : Exception(message)
@@ -26,6 +31,7 @@ object Engine {
                 YoutubeDL.init(ctx.applicationContext)
                 FFmpeg.init(ctx.applicationContext)
                 ready = true
+                _ready.value = true
             }
         }
     }
@@ -60,12 +66,26 @@ object Engine {
 
     // ------------------------------------------------------------------ analyse
 
-    suspend fun probe(ctx: Context, url: String): ProbeResult = withContext(Dispatchers.IO) {
+    /** En-têtes du navigateur (Referer, cookies…) : indispensables pour les flux protégés par jeton. */
+    private fun YoutubeDLRequest.withHeaders(headers: Map<String, String>): YoutubeDLRequest {
+        for ((name, value) in headers) {
+            when (name.lowercase()) {
+                "user-agent" -> addOption("--user-agent", value)
+                "referer" -> addOption("--referer", value)
+                else -> addOption("--add-header", "$name:$value")
+            }
+        }
+        return this
+    }
+
+    suspend fun probe(ctx: Context, url: String, headers: Map<String, String> = emptyMap()): ProbeResult =
+        withContext(Dispatchers.IO) {
         ensureInit(ctx)
         val request = YoutubeDLRequest(url)
             .addOption("--dump-single-json")
             .addOption("--flat-playlist")
             .addOption("--no-warnings")
+            .withHeaders(headers)
         val response = try {
             YoutubeDL.execute(request, null, null)
         } catch (e: YoutubeDLException) {
@@ -123,6 +143,7 @@ object Engine {
             .addOption("--fragment-retries", 10)
             .addOption("--concurrent-fragments", 4)
             .addOption("--embed-metadata")
+            .withHeaders(item.headers)
         if (item.mode == "audio") {
             request.addOption("-f", "bestaudio/best")
                 .addOption("-x")
@@ -144,6 +165,13 @@ object Engine {
             ?.maxByOrNull { it.length() }
             ?: throw EngineError("Aucun fichier produit")
     }
+
+    private val SIZE_RE = Regex("""of\s+~?\s*([\d.]+\s*[KMGT]?i?B)""")
+    private val SPEED_RE = Regex("""at\s+([\d.]+\s*[KMGT]?i?B/s)""")
+
+    /** Taille et vitesse lues dans une ligne de progression yt-dlp. */
+    fun parseProgressLine(line: String): Pair<String?, String?> =
+        SIZE_RE.find(line)?.groupValues?.get(1) to SPEED_RE.find(line)?.groupValues?.get(1)
 
     fun cancel(id: String) {
         YoutubeDL.destroyProcessById(id)
