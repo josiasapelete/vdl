@@ -3,6 +3,8 @@ package app.vdl
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.core.content.IntentCompat
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -35,11 +37,18 @@ class MainActivity : ComponentActivity() {
         handleShare(intent)
     }
 
-    /** Lien reçu via « Partager → VDL ». */
+    /** « Partager → VDL » : un lien (à télécharger) ou des fichiers (Telegram, WhatsApp… à enregistrer). */
     private fun handleShare(intent: Intent?) {
-        if (intent?.action == Intent.ACTION_SEND) {
-            val text = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return
-            viewModel.analyze(text)
+        when (intent?.action) {
+            Intent.ACTION_SEND -> {
+                val stream = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)
+                if (stream != null) viewModel.importShared(listOf(stream))
+                else intent.getStringExtra(Intent.EXTRA_TEXT)?.let(viewModel::analyze)
+            }
+            Intent.ACTION_SEND_MULTIPLE -> {
+                val streams = IntentCompat.getParcelableArrayListExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)
+                viewModel.importShared(streams.orEmpty())
+            }
         }
     }
 

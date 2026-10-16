@@ -208,12 +208,21 @@ class MainWindow(QMainWindow):
         menu.addAction("Afficher", self.show_normal)
         menu.addAction("Tout reprendre", self.manager.resume_all)
         menu.addAction("Tout mettre en pause", self.manager.pause_all)
+        self.a_floating = menu.addAction("Bulle flottante")
+        self.a_floating.setCheckable(True)
+        self.a_floating.setChecked(settings.floating_button)
+        self.a_floating.toggled.connect(self.set_floating)
         menu.addSeparator()
         menu.addAction("Quitter", self.quit)
         self.tray.setContextMenu(menu)
         self.tray.activated.connect(lambda r: self.show_normal() if r == QSystemTrayIcon.Trigger else None)
         self.tray.setToolTip(APP_NAME)
         self.tray.show()
+
+        # Bulle flottante (au premier plan, par-dessus les autres fenêtres)
+        self.floating = None
+        if settings.floating_button:
+            self.set_floating(True)
         self._notified: set[str] = {t.id for t in manager.snapshot() if t.status in (Status.DONE, Status.ERROR)}
 
         # Rafraîchissement périodique (le gestionnaire tourne dans ses propres threads).
@@ -434,10 +443,47 @@ class MainWindow(QMainWindow):
         folder.mkdir(parents=True, exist_ok=True)
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(folder)))
 
+    # ------------------------------------------------------------------ bulle flottante
+
+    def set_floating(self, on: bool):
+        from .floating import FloatingButton
+        self.settings.floating_button = on
+        self.settings.save()
+        if self.a_floating.isChecked() != on:
+            self.a_floating.setChecked(on)
+        if on and self.floating is None:
+            s = self.settings
+            self.floating = FloatingButton(s.floating_x if s.floating_x >= 0 else None,
+                                           s.floating_y if s.floating_y >= 0 else None)
+            self.floating.activated.connect(self._on_floating)
+            self.floating.hide_requested.connect(lambda: self.set_floating(False))
+            self.floating.open_requested.connect(self.show_normal)
+            self.floating.moved.connect(self._save_floating_pos)
+            self.floating.show()
+        elif not on and self.floating is not None:
+            self.floating.close()
+            self.floating.deleteLater()
+            self.floating = None
+            self.tray.showMessage(APP_NAME, "Bulle masquée. Pour la réafficher : clic droit sur l'icône VDL "
+                                  "près de l'horloge → Bulle flottante.", QSystemTrayIcon.Information, 5000)
+
+    def _save_floating_pos(self, x: int, y: int):
+        self.settings.floating_x, self.settings.floating_y = x, y
+        self.settings.save()
+
+    def _on_floating(self, url: str):
+        if url:
+            self._last_clip = url     # évite le bandeau « lien copié » pour ce même lien
+            self.analyze(url)
+        else:
+            self.tray.showMessage(APP_NAME, "Copiez d'abord le lien d'une vidéo (ou glissez-le sur la bulle), "
+                                  "puis cliquez sur la bulle.", QSystemTrayIcon.Information, 5000)
+
     def open_settings(self):
         dlg = SettingsDialog(self.settings, self)
         if dlg.exec():
             dlg.apply()
+            self.set_floating(self.settings.floating_button)
             self.manager._wake.set()   # nouveau nombre de téléchargements simultanés
             self.statusBar().showMessage("Réglages enregistrés", 4000)
 
@@ -569,6 +615,8 @@ class MainWindow(QMainWindow):
 
     def quit(self):
         self._quitting = True
+        if self.floating is not None:
+            self.floating.close()
         self.timer.stop()
         self.tray.hide()
         QApplication.quit()

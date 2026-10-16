@@ -293,6 +293,9 @@ class SettingsDialog(QDialog):
                                 "ou réservées aux membres (Facebook, Instagram…)")
         form.addRow("Cookies du navigateur :", self.cookies)
 
+        self.floating = QCheckBox("Afficher la bulle flottante (cliquer ou y glisser un lien)")
+        self.floating.setChecked(settings.floating_button)
+        form.addRow("Bulle :", self.floating)
         self.clipboard = QCheckBox("Détecter les liens copiés")
         self.clipboard.setChecked(settings.clipboard_watch)
         form.addRow("Presse-papiers :", self.clipboard)
@@ -320,6 +323,7 @@ class SettingsDialog(QDialog):
         s.auto_subtitles = self.auto_subs.isChecked()
         s.cookies_from_browser = self.cookies.currentData()
         s.clipboard_watch = self.clipboard.isChecked()
+        s.floating_button = self.floating.isChecked()
         s.auto_update_ytdlp = self.autoupdate.isChecked()
         s.server_port = self.port.value()
         Path(s.download_dir).expanduser().mkdir(parents=True, exist_ok=True)

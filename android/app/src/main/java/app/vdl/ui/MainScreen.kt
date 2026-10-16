@@ -43,6 +43,7 @@ import app.vdl.DownloadItem
 import app.vdl.MainViewModel
 import app.vdl.Tab
 import app.vdl.browser.BrowserController
+import app.vdl.bubble.Bubble
 
 @Composable
 fun MainScreen(vm: MainViewModel) {
@@ -62,6 +63,7 @@ fun MainScreen(vm: MainViewModel) {
     var url by rememberSaveable { mutableStateOf("") }
     var clipSuggestion by remember { mutableStateOf<String?>(null) }
     val browser = remember { BrowserController(ctx, vm) }
+    var bubbleEnabled by remember { mutableStateOf(Bubble.isEnabled(ctx)) }
 
     LaunchedEffect(message) {
         message?.let { snackbar.showSnackbar(it); vm.consumeMessage() }
@@ -71,6 +73,11 @@ fun MainScreen(vm: MainViewModel) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            // Bulle : démarrée si activée et autorisée (retour du réglage « Superposition » compris)
+            if (Bubble.isEnabled(ctx)) {
+                if (Bubble.canDraw(ctx)) Bubble.start(ctx) else { Bubble.setEnabled(ctx, false) }
+            }
+            bubbleEnabled = Bubble.isEnabled(ctx)
             val found = MainViewModel.extractUrl(readClipboard(ctx))
             val prefs = ctx.getSharedPreferences("ui", Context.MODE_PRIVATE)
             if (found != null && found != prefs.getString("last_clip", null) && url.isBlank()) {
@@ -83,7 +90,7 @@ fun MainScreen(vm: MainViewModel) {
     BackHandler(enabled = tab == Tab.BROWSER) {
         if (!browser.handleBack()) vm.selectTab(Tab.HOME)
     }
-    BackHandler(enabled = tab == Tab.DOWNLOADS) { vm.selectTab(Tab.HOME) }
+    BackHandler(enabled = tab == Tab.DOWNLOADS || tab == Tab.STATUSES) { vm.selectTab(Tab.HOME) }
 
     val actions = remember {
         DownloadActions(
@@ -135,7 +142,24 @@ fun MainScreen(vm: MainViewModel) {
                                 onSeeAll = { vm.selectTab(Tab.DOWNLOADS) },
                                 onOpenSite = vm::openInBrowser,
                                 onOpenBrowser = { vm.selectTab(Tab.BROWSER) },
+                                bubbleEnabled = bubbleEnabled,
+                                onBubbleToggle = { on ->
+                                    if (!on) {
+                                        Bubble.setEnabled(ctx, false)
+                                        Bubble.stop(ctx)
+                                    } else {
+                                        Bubble.setEnabled(ctx, true)
+                                        if (Bubble.canDraw(ctx)) Bubble.start(ctx)
+                                        else {
+                                            vm.showMessage("Autorisez « Afficher par-dessus les autres applis » pour VDL, puis revenez")
+                                            Bubble.requestPermission(ctx)
+                                        }
+                                    }
+                                    bubbleEnabled = Bubble.isEnabled(ctx) && (Bubble.canDraw(ctx) || !on)
+                                },
+                                onOpenStatuses = { vm.selectTab(Tab.STATUSES) },
                             )
+                            Tab.STATUSES -> StatusesScreen(onBack = { vm.selectTab(Tab.HOME) }, onMessage = vm::showMessage)
                             else -> DownloadsContent(downloads, actions, onClearFinished = vm::clearFinished)
                         }
                     }

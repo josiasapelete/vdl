@@ -2,12 +2,21 @@ package app.vdl
 
 import android.app.Application
 import app.vdl.browser.Shields
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.decode.VideoFrameDecoder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
-class VdlApp : Application() {
+class VdlApp : Application(), ImageLoaderFactory {
+    /** Coil sait aussi afficher une image extraite d'une vidéo (statuts WhatsApp). */
+    override fun newImageLoader(): ImageLoader = ImageLoader.Builder(this)
+        .components { add(VideoFrameDecoder.Factory()) }
+        .crossfade(true)
+        .build()
+
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun onCreate() {

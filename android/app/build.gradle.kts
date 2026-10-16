@@ -125,4 +125,6 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.10.0")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("io.coil-kt:coil-video:2.7.0")                 // vignettes des statuts vidéo
+    implementation("androidx.documentfile:documentfile:1.0.1")    // dossier des statuts WhatsApp
 }

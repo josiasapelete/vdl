@@ -1,6 +1,8 @@
 package app.vdl
 
 import android.app.Application
+import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.vdl.browser.MediaSniffer
@@ -12,7 +14,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
-enum class Tab { HOME, BROWSER, DOWNLOADS }
+enum class Tab { HOME, BROWSER, DOWNLOADS, STATUSES }
 
 /** Avertissement du navigateur (pop-up ou redirection bloquée), avec une action facultative. */
 data class BrowserNotice(val text: String, val action: (() -> Unit)?, val id: Long = System.nanoTime())
@@ -168,6 +170,43 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun analyzeMedia(media: DetectedMedia, pageTitle: String) {
         analyze(media.url, media.headers, pageTitle.takeIf { it.isNotBlank() })
+    }
+
+    // ------------------------------------------------------------------ fichiers partagés (Telegram, WhatsApp…)
+
+    /** Vidéos, photos ou sons partagés vers VDL : copiés dans Téléchargements/VDL et ajoutés à la liste. */
+    fun importShared(uris: List<Uri>) {
+        if (uris.isEmpty()) return
+        _tab.value = Tab.DOWNLOADS
+        viewModelScope.launch {
+            var ok = 0
+            for (uri in uris) {
+                runCatching {
+                    val resolver = ctx.contentResolver
+                    val name = resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
+                        if (c.moveToFirst()) c.getString(0) else null
+                    } ?: "partage-${System.currentTimeMillis()}"
+                    val mime = resolver.getType(uri) ?: Storage.mimeOf(name)
+                    val size = resolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { c ->
+                        if (c.moveToFirst() && !c.isNull(0)) c.getLong(0) else 0L
+                    } ?: 0L
+                    val (saved, savedMime) = Storage.publishStream(ctx, name, mime) { resolver.openInputStream(uri)!! }
+                    DownloadStore.add(DownloadItem(
+                        id = UUID.randomUUID().toString().take(12), url = uri.toString(), title = name,
+                        mode = when { mime.startsWith("audio") -> "audio"; mime.startsWith("video") -> "video"; else -> "file" },
+                        quality = "best", status = Status.DONE, progress = 100f, fileName = name,
+                        fileUri = saved.toString(), mime = savedMime,
+                        size = if (size > 0) "%.2fMiB".format(java.util.Locale.US, size / 1048576.0) else "",
+                    ))
+                    ok++
+                }
+            }
+            _message.value = when {
+                ok == 0 -> "Impossible d'enregistrer ce fichier"
+                ok == 1 -> "Enregistré dans Téléchargements/VDL"
+                else -> "$ok fichiers enregistrés dans Téléchargements/VDL"
+            }
+        }
     }
 
     // ------------------------------------------------------------------ téléchargements

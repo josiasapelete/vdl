@@ -29,7 +29,7 @@
 
   <main>
     <div class="wrap hero">
-      <a class="new-badge" href="#android"><span>Nouveau</span> Navigateur intégré sur Android, protégé contre les pubs et les pop-ups →</a>
+      <a class="new-badge" href="#android"><span>Nouveau</span> Bulle flottante, statuts WhatsApp et Telegram →</a>
       <h1>Téléchargez vos vidéos,<br>simplement.</h1>
       <p class="lead">Collez un lien, choisissez la qualité ou le MP3, c'est fait.
         Plus de 1 800 sites compatibles, téléchargements accélérés, gratuit.</p>
@@ -45,7 +45,7 @@
       <div class="platforms">
         <div class="platform" data-os="windows">
           <h3>Windows</h3>
-          <p>Windows 10 et 11 (64 bits). Avec l'extension navigateur.</p>
+          <p>Windows 10 et 11 (64 bits). Bulle flottante et extension navigateur.</p>
           <a class="dl" data-asset="setup" href="#">Télécharger l'installeur</a>
           <a class="dl" data-asset="portable" href="#" style="font-weight:400;font-size:14px">Version portable (.zip)</a>
         </div>
@@ -71,11 +71,23 @@
     <section id="android">
       <div class="wrap">
         <span class="kicker">Application Android · nouveau</span>
-        <h2>Un navigateur intégré qui repère les vidéos</h2>
-        <p class="sub">Naviguez sur n'importe quel site directement dans VDL. Dès qu'une vidéo se lance, le bouton
-          « Télécharger cette vidéo » apparaît. Et pendant que vous naviguez, VDL vous protège.</p>
+        <h2>Téléchargez depuis vos applis, sans les quitter</h2>
+        <p class="sub">Une bulle VDL flotte au-dessus de Facebook, TikTok, Instagram ou Telegram. Copiez le lien d'une vidéo,
+          touchez la bulle : c'est téléchargé. Et le navigateur intégré repère les vidéos de n'importe quel site, en vous protégeant.</p>
 
         <div class="android-points">
+          <div class="point">
+            <h3>Bulle flottante</h3>
+            <p>Par-dessus n'importe quelle app : « Copier le lien », touchez la bulle, choisissez la qualité. Vous restez dans l'app.</p>
+          </div>
+          <div class="point">
+            <h3>Statuts WhatsApp</h3>
+            <p>Les statuts que vous avez regardés (vidéos et photos) s'enregistrent d'un geste. WhatsApp Business aussi.</p>
+          </div>
+          <div class="point">
+            <h3>Telegram et partage</h3>
+            <p>Liens de canaux publics via la bulle ; pour une vidéo de discussion : Partager → VDL, elle est enregistrée.</p>
+          </div>
           <div class="point">
             <h3>Détection automatique</h3>
             <p>Vidéos classiques et flux en streaming (HLS, DASH) sont repérés pendant la lecture, sur la plupart des sites.</p>
@@ -201,6 +213,16 @@
         <p class="sub">Les applications installées vous préviennent automatiquement quand une nouvelle version sort.</p>
         <div class="changelog">
           <article class="release">
+            <div class="release-head"><span class="tag">0.4.0</span><span class="date">Octobre 2026</span></div>
+            <h3>Bulle flottante, statuts WhatsApp et Telegram</h3>
+            <ul>
+              <li>Android : une bulle VDL au-dessus de vos applis (Facebook, TikTok, Instagram, Telegram…) : copiez le lien, touchez la bulle, téléchargez sans quitter l'app.</li>
+              <li>Windows : bulle toujours visible ; cliquez après avoir copié un lien, ou glissez-y un lien.</li>
+              <li>Statuts WhatsApp et WhatsApp Business : enregistrez les vidéos et photos que vous avez regardées.</li>
+              <li>Telegram, WhatsApp… : Partager → VDL enregistre la vidéo, la photo ou le son dans Téléchargements/VDL.</li>
+            </ul>
+          </article>
+          <article class="release">
             <div class="release-head"><span class="tag">0.3.2</span><span class="date">Octobre 2026</span></div>
             <h3>Navigateur plus simple à utiliser</h3>
             <ul>
@@ -269,6 +291,10 @@
         <details>
           <summary>Pourquoi certaines vidéos ne se téléchargent pas ?</summary>
           <p>Les contenus protégés contre la copie (DRM), comme ceux des plateformes de streaming par abonnement, ne sont pas pris en charge. Une vidéo privée peut nécessiter d'activer « Cookies du navigateur » dans les réglages.</p>
+        </details>
+        <details>
+          <summary>VDL peut-il détecter tout seul les vidéos dans Facebook, WhatsApp ou Telegram ?</summary>
+          <p>Non : Android isole chaque application, aucune app ne peut voir les vidéos d'une autre. VDL propose donc la bulle flottante (copiez le lien, touchez la bulle), l'enregistrement des statuts WhatsApp et le partage vers VDL. Les vidéos de discussions privées Telegram s'enregistrent avec « Partager → VDL ».</p>
         </details>
         <details>
           <summary>Le navigateur intégré de l'application Android est-il sûr ?</summary>

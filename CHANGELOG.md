@@ -3,6 +3,15 @@
 Chaque section « ## x.y.z » devient le texte de la version publiée sur GitHub.
 Pensez aussi à l'ajouter à la section « Nouveautés » du site (site/index.html).
 
+## 0.4.0
+
+**Bulle flottante, statuts WhatsApp et Telegram**
+
+- Bulle flottante sur Android : par-dessus Facebook, TikTok, Instagram, Telegram…, copiez le lien d'une vidéo et touchez la bulle pour la télécharger sans quitter l'app.
+- Bulle flottante sur Windows : toujours visible, cliquez dessus après avoir copié un lien ou glissez-y un lien.
+- Statuts WhatsApp et WhatsApp Business : enregistrez les vidéos et photos des statuts que vous avez regardés.
+- Telegram, WhatsApp… : « Partager → VDL » sur une vidéo, une photo ou un son l'enregistre dans Téléchargements/VDL.
+
 ## 0.3.2
 
 **Navigateur plus simple à utiliser**

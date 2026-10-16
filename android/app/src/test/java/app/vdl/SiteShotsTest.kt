@@ -149,6 +149,7 @@ class SiteShotsTest {
                 url = "", onUrlChange = {}, onSubmit = {}, onPaste = {},
                 clipSuggestion = "https://video-exemple.com/regarder/42", onUseClip = {}, engineReady = true,
                 appUpdate = null, updateProgress = null, onUpdate = {}, recent = samples, onSeeAll = {}, onOpenSite = {}, onOpenBrowser = {},
+        bubbleEnabled = true, onBubbleToggle = {}, onOpenStatuses = {},
             )
         }
     }
@@ -194,6 +195,7 @@ class SiteShotsTest {
                 url = "", onUrlChange = {}, onSubmit = {}, onPaste = {}, clipSuggestion = null, onUseClip = {},
                 engineReady = true, appUpdate = null, updateProgress = null, onUpdate = {}, recent = samples, onSeeAll = {},
                 onOpenSite = {}, onOpenBrowser = {},
+        bubbleEnabled = true, onBubbleToggle = {}, onOpenStatuses = {},
             )
         }
     }

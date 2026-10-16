@@ -9,6 +9,9 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Installer les mises à jour de VDL téléchargées depuis l'application -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Bulle flottante par-dessus les autres applications -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- Android 9 et moins : écrire dans Téléchargements/VDL -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -42,7 +45,35 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
+            <!-- Vidéos, photos et sons partagés depuis Telegram, WhatsApp… : enregistrés dans Téléchargements/VDL -->
+            <intent-filter android:label="@string/share_file_label">
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/*" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="audio/*" />
+            </intent-filter>
         </activity>
+
+        <!-- Panneau de la bulle : s'ouvre par-dessus l'app en cours, puis rend la main -->
+        <activity
+            android:name=".bubble.BubbleActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:taskAffinity="app.vdl.bubble"
+            android:theme="@style/Theme.VDL.Panel"
+            android:windowSoftInputMode="adjustResize" />
+
+        <service
+            android:name=".bubble.BubbleService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Bulle flottante permettant de télécharger une vidéo depuis n'importe quelle application" />
+        </service>
 
         <provider
             android:name="androidx.core.content.FileProvider"

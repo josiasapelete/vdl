@@ -58,6 +58,7 @@ class ScreenshotsTest {
         clipSuggestion = if (clip) "https://www.tiktok.com/@chef/video/7350000000000000000" else null,
         onUseClip = {}, engineReady = false, appUpdate = null, updateProgress = null, onUpdate = {},
         recent = samples, onSeeAll = {}, onOpenSite = {}, onOpenBrowser = {},
+        bubbleEnabled = true, onBubbleToggle = {}, onOpenStatuses = {},
     )
 
     @Test fun home_light() = shoot(false) { Home(clip = true) }
@@ -96,5 +97,28 @@ class ScreenshotsTest {
                 { _, _, _, _ -> }, { _, _ -> }, {},
             )
         }
+    }
+
+    private val fakeStatuses = (1..7).map {
+        app.vdl.statuses.StatusItem(android.net.Uri.EMPTY, "status$it.mp4", isVideo = it % 3 != 0, modified = it.toLong())
+    }
+
+    @Test fun statuses_grid() = shoot(false) {
+        app.vdl.ui.StatusesContent(
+            app.vdl.statuses.WhatsAppStatuses.Source.WHATSAPP, {}, granted = true, loading = false, items = fakeStatuses,
+            isSaved = { it.name == "status2.mp4" }, onGrant = {}, onRefresh = {}, onOpen = {}, onSave = {}, onBack = {},
+        )
+    }
+
+    @Test fun statuses_grant() = shoot(false) {
+        app.vdl.ui.StatusesContent(
+            app.vdl.statuses.WhatsAppStatuses.Source.WHATSAPP, {}, granted = false, loading = false, items = emptyList(),
+            isSaved = { false }, onGrant = {}, onRefresh = {}, onOpen = {}, onSave = {}, onBack = {},
+        )
+    }
+
+    @Test fun bubble_panel() = shoot(false) {
+        app.vdl.ui.BubblePanel(ProbeState.Idle, noLink = true, onAnalyze = {}, onDownload = { _, _, _, _ -> },
+            onChoose = { _, _ -> }, onClose = {})
     }
 }

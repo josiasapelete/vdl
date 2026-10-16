@@ -39,6 +39,9 @@ class Settings:
     subtitles: str = ""                # ex. "fr,en" — vide = pas de sous-titres
     auto_subtitles: bool = False       # inclure les sous-titres générés automatiquement
     clipboard_watch: bool = True
+    floating_button: bool = True       # bulle flottante toujours au premier plan
+    floating_x: int = -1
+    floating_y: int = -1
     auto_update_ytdlp: bool = True
     server_port: int = 9614
     cookies_from_browser: str = ""     # "chrome", "firefox", "edge"… pour les contenus privés

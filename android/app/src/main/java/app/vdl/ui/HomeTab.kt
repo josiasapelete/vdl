@@ -1,6 +1,13 @@
 package app.vdl.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.BubbleChart
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.Switch
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -48,6 +55,36 @@ import app.vdl.DownloadItem
 
 data class Site(val name: String, val letter: String, val color: Color, val url: String)
 
+@Composable
+private fun ToolCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    text: String,
+    trailing: @Composable () -> Unit,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 1.dp,
+    ) {
+        Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) { Icon(icon, null, tint = MaterialTheme.colorScheme.onPrimaryContainer) }
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleSmall)
+                Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(Modifier.width(8.dp))
+            trailing()
+        }
+    }
+}
+
 val POPULAR_SITES = listOf(
     Site("YouTube", "Y", Color(0xFFE53935), "https://m.youtube.com"),
     Site("TikTok", "T", Color(0xFFFE2C55), "https://www.tiktok.com"),
@@ -75,6 +112,9 @@ fun HomeContent(
     onSeeAll: () -> Unit,
     onOpenSite: (String) -> Unit,
     onOpenBrowser: () -> Unit,
+    bubbleEnabled: Boolean,
+    onBubbleToggle: (Boolean) -> Unit,
+    onOpenStatuses: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -204,6 +244,26 @@ fun HomeContent(
                     Spacer(Modifier.width(8.dp))
                     Text("Ouvrir un autre site")
                 }
+            }
+        }
+
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Outils", style = MaterialTheme.typography.titleMedium)
+                ToolCard(
+                    icon = Icons.Default.BubbleChart,
+                    title = "Bulle flottante",
+                    text = "Par-dessus Facebook, TikTok, Telegram… : copiez le lien, touchez la bulle, téléchargez.",
+                    trailing = { Switch(checked = bubbleEnabled, onCheckedChange = onBubbleToggle) },
+                    onClick = { onBubbleToggle(!bubbleEnabled) },
+                )
+                ToolCard(
+                    icon = Icons.Default.PhotoLibrary,
+                    title = "Statuts WhatsApp",
+                    text = "Enregistrez les statuts (vidéos et photos) que vous avez regardés.",
+                    trailing = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
+                    onClick = onOpenStatuses,
+                )
             }
         }
 
