@@ -371,10 +371,20 @@ def _video_result(url: str, info: dict) -> ProbeResult:
     )
 
 
+TELEGRAM_WEB_STREAM = re.compile(r"web\.telegram\.org/[^?#]*/(stream|progressive)/|%7B%22dcId|\{\"dcId\"", re.I)
+TELEGRAM_MSG = ("Ce fichier vient de Telegram Web : son adresse n'existe qu'à l'intérieur de l'onglet Telegram "
+                "(la vidéo y est déchiffrée avec votre session), elle ne peut pas être téléchargée ailleurs.\n\n"
+                "Utilisez le bouton de Telegram : dans Telegram Web, ouvrez la vidéo puis ⋮ → Télécharger ; "
+                "dans Telegram Desktop, clic droit → Enregistrer sous.\n\n"
+                "Pour un message d'un canal public, « Copier le lien » (t.me/…) fonctionne avec VDL.")
+
+
 def probe(url: str, settings: Settings | None = None, opts: Options | None = None,
           _depth: int = 0) -> ProbeResult:
     settings = settings or Settings.load()
     url = url.strip()
+    if TELEGRAM_WEB_STREAM.search(url):
+        raise ProbeError(TELEGRAM_MSG)
     if not re.match(r"^https?://", url, re.I):
         raise ProbeError("L'adresse doit commencer par http:// ou https://")
 

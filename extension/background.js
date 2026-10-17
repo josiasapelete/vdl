@@ -8,7 +8,9 @@ const MEDIA_TYPES = /^(video\/|audio\/|application\/(x-mpegurl|vnd\.apple\.mpegu
 const MEDIA_EXT = /\.(mp4|m4v|webm|mkv|mov|avi|flv|mp3|m4a|aac|ogg|opus|wav|flac|m3u8|mpd)(\?|#|$)/i;
 const STREAM = /\.(m3u8|mpd)(\?|#|$)|mpegurl|dash\+xml/i;
 // Fragments et flux internes inutiles seuls (la page elle-même sera passée à yt-dlp)
-const IGNORE_URL = /googlevideo\.com|\.ts(\?|$)|\.m4s(\?|$)|\/seg[-_]?\d+|\/fragment|\/chunk[-_]?\d+|\/range\/|[?&]range=/i;
+// Adresses internes de Telegram Web (« /stream/{"dcId"… ») : elles n'existent que dans l'onglet,
+// déchiffrées avec la session de l'utilisateur, et ne peuvent pas être téléchargées ailleurs.
+const IGNORE_URL = /web\.telegram\.org\/[^?#]*\/(stream|progressive)\/|%7B%22dcId|googlevideo\.com|\.ts(\?|$)|\.m4s(\?|$)|\/seg[-_]?\d+|\/fragment|\/chunk[-_]?\d+|\/range\/|[?&]range=/i;
 // Segments HLS/DASH (souvent déguisés en .jpg/.png/.html) : jamais utiles seuls
 const SEGMENT_TYPES = /^(video\/mp2t|video\/iso\.segment|audio\/mp2t)$/i;
 const MIN_SIZE = 300 * 1024; // ignore les petits fichiers (pubs, sons d'interface)

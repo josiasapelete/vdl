@@ -1,6 +1,6 @@
 """VDL — gestionnaire de téléchargements vidéo et fichiers."""
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 APP_NAME = "VDL"
 # Dépôt GitHub « pseudo/projet » qui publie les versions (vérification des mises à jour de VDL).
 # Vide = pas de vérification.

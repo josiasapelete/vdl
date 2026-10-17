@@ -3,6 +3,12 @@
 Chaque section « ## x.y.z » devient le texte de la version publiée sur GitHub.
 Pensez aussi à l'ajouter à la section « Nouveautés » du site (site/index.html).
 
+## 0.4.1
+
+**Telegram Web**
+
+- Les vidéos lues dans Telegram Web ne sont plus proposées au téléchargement (leur adresse n'existe que dans l'onglet Telegram) ; VDL explique comment les enregistrer avec le bouton de Telegram.
+
 ## 0.4.0
 
 **Bulle flottante, statuts WhatsApp et Telegram**

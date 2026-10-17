@@ -14,7 +14,7 @@ object MediaSniffer {
 
     // Fragments de flux et flux internes inutiles seuls (sur ces sites, la page est passée à yt-dlp)
     private val IGNORE = Regex(
-        """googlevideo\.com|\.ts(\?|$)|\.m4s(\?|$)|/seg[-_]?\d+|/fragment|/chunk[-_]?\d+|/range/|[?&]range=|""" +
+        """web\.telegram\.org/[^?#]*/(stream|progressive)/|%7B%22dcId|googlevideo\.com|\.ts(\?|$)|\.m4s(\?|$)|/seg[-_]?\d+|/fragment|/chunk[-_]?\d+|/range/|[?&]range=|""" +
             """[?&]bytestart=|init\.mp4|/ads?/|doubleclick|googlesyndication""",
         RegexOption.IGNORE_CASE,
     )
